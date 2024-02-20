@@ -23,26 +23,12 @@ class StringCalculatorTest {
 
         @Test
         void empty_string_should_be_zero() {
-            // Given
-            final String text = "";
-
-            // When
-            final int result = sut.add(text);
-
-            // Then
-            assertEquals(0, result);
+            assertEquals(0, sut.add(""));
         }
 
         @Test
         void null_string_should_be_zero() {
-            // Given
-            final String text = null;
-
-            // When
-            final int result = sut.add(text);
-
-            // Then
-            assertEquals(0, result);
+            assertEquals(0, sut.add(null));
         }
 
 
@@ -53,14 +39,7 @@ class StringCalculatorTest {
                 "'1:2:3', 6",
         })
         void normal_case_should_sum_of_values(String input, int expected) {
-            // Given
-            final String text = input;
-
-            // When
-            final int result = sut.add(text);
-
-            // Then
-            assertEquals(expected, result);
+            assertEquals(expected, sut.add(input));
         }
 
 
@@ -72,11 +51,7 @@ class StringCalculatorTest {
                 "' 1, 2: 3'",
         })
         void number_with_spaces_throws_error(String input) {
-            // Given
-            final String text = input;
-
-            // Then
-            assertThrows(RuntimeException.class, () -> sut.add(text));
+            assertThrows(RuntimeException.class, () -> sut.add(input));
         }
 
         @ParameterizedTest
@@ -90,11 +65,7 @@ class StringCalculatorTest {
                 "'1,:"
         })
         void empty_number_throws_error(String input) {
-            // Given
-            final String text = input;
-
-            // Then
-            assertThrows(RuntimeException.class, () -> sut.add(text));
+            assertThrows(RuntimeException.class, () -> sut.add(input));
         }
 
         @ParameterizedTest
@@ -104,11 +75,7 @@ class StringCalculatorTest {
                 "'-1,-2,-3'"
         })
         void negative_number_should_throw_error(String input) {
-            // Given
-            final String text = input;
-
-            // Then
-            assertThrows(RuntimeException.class, () -> sut.add(text));
+            assertThrows(RuntimeException.class, () -> sut.add(input));
         }
 
         @ParameterizedTest
@@ -118,14 +85,7 @@ class StringCalculatorTest {
                 "'//+\n1,2+3', 6"
         })
         void custom_delimiter_should_sum_of_values(String input, int expected) {
-            // Given
-            final String text = input;
-
-            // When
-            final int result = sut.add(text);
-
-            // Then
-            assertEquals(expected, result);
+            assertEquals(expected, sut.add(input));
         }
 
     }
