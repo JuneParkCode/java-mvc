@@ -1,5 +1,6 @@
 package webserver.core.router;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webserver.http.*;
@@ -33,44 +34,57 @@ public class Router {
         routingTable.put(path, method);
     }
 
-    // TODO: 해당 코드 이해 안되어있음.
     public void registerController(Object controller) {
         if (!controller.getClass().isAnnotationPresent(Controller.class)) {
             return;
         }
         Controller controllerAnnotation = controller.getClass().getAnnotation(Controller.class);
         String rootPath = controllerAnnotation.path();
+        registerRoutingHandlers(controller, rootPath);
+    }
 
+    private void registerRoutingHandlers(Object controller, String rootPath) {
         for (Method method : controller.getClass().getMethods()) {
             if (method.isAnnotationPresent(Route.class)) {
                 Route route = method.getAnnotation(Route.class);
                 HttpMethod httpMethod = route.method();
-                // NOTE: refactoring 필요
-                String routerPath = route.path();
-                if (routerPath.equals("/")) {
-                    routerPath = "";
-                }
-                String path = rootPath + routerPath;
-                RoutingHandler routingHandler = (request) -> {
-                    try {
-                        return (HttpResponse) method.invoke(controller, request);
-                    } catch (InvocationTargetException e) {
-                        // NOTE: invoke 된 method 의 exception 은 InvocationTargetException 으로 Wrapping 됨
-                        Throwable exception = e.getTargetException();
-                        if (exception instanceof HttpRequestException) {
-                            throw (HttpRequestException) exception;
-                        }
-                        throw new RuntimeException(exception);
-                    } catch (IllegalAccessException e) {
-                        log.error(e.getMessage());
-                        throw new RuntimeException(e);
-                    }
-                };
+                String path = getPath(rootPath, route);
+
+                RoutingHandler routingHandler = getRoutingHandler(controller, method);
                 this.registerNewMethod(new RoutingPath(httpMethod, path), routingHandler);
             }
         }
     }
 
+    @NotNull
+    private static RoutingHandler getRoutingHandler(Object controller, Method method) {
+        return (request) -> {
+            try {
+                return (HttpResponse) method.invoke(controller, request);
+            } catch (InvocationTargetException e) {
+                Throwable exception = e.getTargetException();
+                if (exception instanceof HttpRequestException) {
+                    throw (HttpRequestException) exception;
+                }
+                throw new RuntimeException(exception);
+            } catch (IllegalAccessException e) {
+                log.error(e.getMessage());
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    @NotNull
+    private static String getPath(String rootPath, Route route) {
+        String routerPath = route.path();
+        if (routerPath.equals("/")) {
+            routerPath = "";
+        }
+        String path = rootPath + routerPath;
+        return path;
+    }
+
+    @NotNull
     public RoutingHandler route(HttpRequest request) {
         String path = request.getPath();
         HttpMethod method = request.getMethod();
@@ -83,24 +97,26 @@ public class Router {
             path = getParentPath(path);
             key = new RoutingPath(method, path);
         }
-        return getNotFoundController();
+        return getNotFoundRoutingHandler();
     }
 
     // NOTE: 해당 class 의 책임이 아님
+    @NotNull
     private String getParentPath(String path) {
         int lastSlashIndex = path.lastIndexOf('/');
-        if (lastSlashIndex == 0)
-            return "/";
-        if (lastSlashIndex == -1) {
-            path = "";
-        } else {
-            path = path.substring(0, lastSlashIndex);
+
+        if (path.equals("/")) {
+            return "";
         }
-        return path;
+        if (lastSlashIndex == 0) {
+            return "/";
+        }
+        return path.substring(0, lastSlashIndex);
     }
 
     // NOTE: 별도의 file 로 빼는 것이 조금 더 적합함.
-    private RoutingHandler getNotFoundController() {
+    @NotNull
+    private RoutingHandler getNotFoundRoutingHandler() {
         byte[] body = "<html><body>NOT FOUND</body></html>".getBytes();
 
         return (request) -> new HttpResponse.HttpResponseBuilder().setBody(body).build();
