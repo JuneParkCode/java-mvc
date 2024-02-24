@@ -16,38 +16,38 @@ public interface RoutingHandler extends Function<HttpRequest, HttpResponse> {
     default public void response(DataOutputStream dos, HttpRequest request) throws IOException {
         try {
             HttpResponse response = this.apply(request);
-            // NOTE: redirect case 에 대해서 따로 처리가 필요함.
             response.send(dos);
+            // NOTE: 해당 부분 refactor 여지 있음. send() 항상 log 가 남겨져야함.
             log.info("Response {} {}", response.getStatus(), request.getPath());
         } catch (HttpRequestException e) {
-            // filter exceptions.
-            HttpStatus statusCode = e.getStatusCode();
-            HttpResponse response;
-
-            switch (statusCode) {
-                case BAD_REQUEST:
-                case UNAUTHORIZED:
-                case NOT_FOUND:
-                case CONFLICT:
-                    response = buildFailedResponse(statusCode);
-                    break;
-                default:
-                    response = buildFailedResponse(BAD_REQUEST);
-                    break;
-            }
-            response.send(dos);
-            log.info("Response {} {}", statusCode, request.getPath());
+            filterHttpException(dos, request, e);
         } catch (RuntimeException e) {
-            e.printStackTrace();
-
-            HttpResponse response = buildFailedResponse(INTERNAL_SERVER_ERROR);
-            response.send(dos);
+            buildFailedResponse(INTERNAL_SERVER_ERROR).send(dos);
             log.info("Response {} {}", INTERNAL_SERVER_ERROR, request.getPath());
         }
     }
 
+    private void filterHttpException(DataOutputStream dos, HttpRequest request, HttpRequestException e) throws IOException {
+        HttpStatus statusCode = e.getStatusCode();
+        HttpResponse response;
+
+        switch (statusCode) {
+            case BAD_REQUEST:
+            case UNAUTHORIZED:
+            case NOT_FOUND:
+            case CONFLICT:
+                response = buildFailedResponse(statusCode);
+                break;
+            default:
+                response = buildFailedResponse(BAD_REQUEST);
+                break;
+        }
+        response.send(dos);
+        log.info("Response {} {}", statusCode, request.getPath());
+    }
+
     default public HttpResponse buildFailedResponse(HttpStatus statusCode) {
-        // NOTE: 유연하게 변경할 수 있도록 할 수 있으면 좋음.
+        // NOTE: File 형태로 response 하는게 조금 더 바람직해보임.
         String body = "<html><body><h1>" + statusCode.getReason() + "</h1></body></html>";;
 
         return new HttpResponse.HttpResponseBuilder()
