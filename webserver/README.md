@@ -35,7 +35,14 @@
 - Content-type 을 전달하는 content의 확장자에 따라 결정하도록 구현.
 
 # 설계
-![image](https://github.com/JuneParkCode/java-mvc/assets/81505228/f58bfa1c-c4de-425a-90e0-417bec7c4d2a)
+![image](https://github.com/JuneParkCode/java-mvc/assets/81505228/2321e36c-fda8-4ff6-a5c9-e6d18dd1052f)
+
+- Yellow  : Class
+- Green   : Public method
+- Orange  : Interface
+- Red     : Instance
+- Blue    : User defined code
+- Purple  : Related with outer proccess
 
 ## 분리
 - 가능한 책임 나눠서 분리.
