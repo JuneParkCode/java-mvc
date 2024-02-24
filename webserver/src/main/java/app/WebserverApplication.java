@@ -1,4 +1,4 @@
-package webserver;
+package app;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +14,10 @@ public class WebserverApplication {
             port = Integer.parseInt(args[0]);
 
         Webserver server = new Webserver(port);
-        server.start();
+        try {
+            server.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
