@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static com.google.common.net.HttpHeaders.*;
+
 public class HttpResponse {
     private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
     // NOTE: Version 에 대해서 별도로 처리가 필요함
@@ -57,6 +59,7 @@ public class HttpResponse {
             return this;
         }
 
+        // NOTE: Path 지정에 대해서 생각해볼 필요 있음.
         public HttpResponseBuilder setCookie(String key, String value) {
             String cookie = this.headers.getValue("Cookie").orElse("Path=/;");
 
@@ -100,15 +103,15 @@ public class HttpResponse {
     }
 
     public byte[] getBody() {
-        this.headers.setHeader("Content-Length", Integer.toString(body.length));
         return body;
     }
 
 
     public void setBody(Path filePath) throws IOException {
-        this.body = Files.readAllBytes(filePath);
+        setBody(Files.readAllBytes(filePath));
     }
     public void setBody(byte[] body) {
         this.body = body;
+        this.headers.setHeader(CONTENT_LENGTH, Integer.toString(body.length));
     }
 }
