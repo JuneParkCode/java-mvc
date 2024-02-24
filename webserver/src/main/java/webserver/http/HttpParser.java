@@ -58,11 +58,11 @@ public class HttpParser {
     private void parseStartLine(String[] lines) throws URISyntaxException {
         String startLine = lines[0];
 
-        String[] words = startLine.split(" ");
-        String methodString = words[0];
-        URI uri = new URI(words[1]);
+        String[] tokens = startLine.split(" ");
+        String methodToken = tokens[0];
+        URI uri = new URI(tokens[1]);
 
-        this.method = HttpMethod.valueOf(methodString);
+        this.method = HttpMethod.valueOf(methodToken);
         this.path = uri.getPath();
         this.queries = getQueryFromString(uri.getQuery());
     }
@@ -70,9 +70,9 @@ public class HttpParser {
     private void parseHeaders(String[] lines) {
         // start line is 0
         for (int i = 1; i < lines.length; ++i) {
-            String[] kv = lines[i].split(":");
-            String key = kv[0].trim();
-            String value = kv[1].trim();
+            String[] tokens = lines[i].split(":");
+            String key = tokens[0].trim();
+            String value = tokens[1].trim();
 
             headers.setHeader(key, value);
         }
@@ -82,9 +82,9 @@ public class HttpParser {
         HashMap<String, String> queries = new HashMap<>();
         if (queryString == null)
             return queries;
-        String[] splitString = queryString.split("&");
+        String[] tokens = queryString.split("&");
 
-        for (String query : splitString) {
+        for (String query : tokens) {
             String[] kv = query.split("=");
             String key = kv[0];
             String value = kv[1];

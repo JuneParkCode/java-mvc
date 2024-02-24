@@ -21,8 +21,8 @@ public class FormData {
     private static Map<String, String> getValuesFromBytes(char[] body) {
         HashMap<String, String> vals = new HashMap<>();
         String str = new String(body);
-        String[] splitString = str.split("&");
-        for (String val : splitString) {
+        String[] tokens = str.split("&");
+        for (String val : tokens) {
             String[] kv = val.split("=");
             String key = kv[0];
             String value = kv[1];
