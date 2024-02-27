@@ -12,8 +12,8 @@ import java.util.function.Function;
 import static webserver.http.HttpStatus.*;
 
 public interface RoutingHandler extends Function<HttpRequest, HttpResponse> {
-    static final Logger log = LoggerFactory.getLogger(RoutingHandler.class);
-    default public void response(DataOutputStream dos, HttpRequest request) throws IOException {
+    Logger log = LoggerFactory.getLogger(RoutingHandler.class);
+    default void response(DataOutputStream dos, HttpRequest request) throws IOException {
         try {
             HttpResponse response = this.apply(request);
             response.send(dos);
@@ -29,26 +29,13 @@ public interface RoutingHandler extends Function<HttpRequest, HttpResponse> {
 
     private void filterHttpException(DataOutputStream dos, HttpRequest request, HttpRequestException e) throws IOException {
         HttpStatus statusCode = e.getStatusCode();
-        HttpResponse response;
-
-        switch (statusCode) {
-            case BAD_REQUEST:
-            case UNAUTHORIZED:
-            case NOT_FOUND:
-            case CONFLICT:
-                response = buildFailedResponse(statusCode);
-                break;
-            default:
-                response = buildFailedResponse(BAD_REQUEST);
-                break;
-        }
-        response.send(dos);
+        buildFailedResponse(statusCode).send(dos);
         log.info("Response {} {}", statusCode, request.getPath());
     }
 
-    default public HttpResponse buildFailedResponse(HttpStatus statusCode) {
+    default HttpResponse buildFailedResponse(HttpStatus statusCode) {
         // NOTE: File 형태로 response 하는게 조금 더 바람직해보임.
-        String body = "<html><body><h1>" + statusCode.getReason() + "</h1></body></html>";;
+        String body = "<html><body><h1>" + statusCode.getReason() + "</h1></body></html>";
 
         return new HttpResponse.HttpResponseBuilder()
                 .setStatus(statusCode)
